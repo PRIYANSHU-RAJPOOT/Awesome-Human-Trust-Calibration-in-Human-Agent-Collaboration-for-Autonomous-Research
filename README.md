@@ -101,6 +101,56 @@ A foundational study explaining how trust influences reliance on automated syste
 
 This paper presents a framework for understanding dispositional, situational, and learned trust in automation.
 
+### Trust in Automation: Development of a Scale to Measure Trust
+
+**Authors:** Jian-Yun Jian, Ann M. Bisantz, and Colin G. Drury
+**Year:** 2000
+**Journal:** International Journal of Cognitive Ergonomics
+
+[Paper / DOI](https://doi.org/10.1207/S15327566IJCE0401_04)
+
+This paper develops a scale for measuring human trust in automated systems and is useful for research investigating how trust can be evaluated and calibrated.
+
+### Trust and Reliance on Automation: Effects of Error and Experience
+
+**Authors:** Raja Parasuraman and Victor Riley
+**Year:** 1997
+**Journal:** Human Factors
+
+[Paper / DOI](https://doi.org/10.1518/001872097778543886)
+
+This foundational paper discusses the role of automation in human decision-making and the problems associated with misuse, disuse, and inappropriate reliance.
+
+### Humans and Automation: Use, Misuse, Disuse, Abuse
+
+**Authors:** Raja Parasuraman and Victor Riley
+**Year:** 1997
+**Journal:** Human Factors
+
+[Paper / DOI](https://doi.org/10.1518/001872097778543886)
+
+This work provides an important framework for understanding how humans may over-rely on automation, fail to use useful automation, or use automated systems inappropriately.
+
+### Trust, Automation, and Human–Machine Interaction
+
+**Authors:** Raja Parasuraman, Thomas B. Sheridan, and Christopher D. Wickens
+**Year:** 2000
+**Journal:** IEEE Transactions on Systems, Man, and Cybernetics
+
+[Paper / DOI](https://doi.org/10.1109/3468.844354)
+
+This paper examines levels of automation and provides a framework for understanding how different degrees of system autonomy influence human roles and oversight.
+
+### Human–AI Interaction and Appropriate Reliance
+
+**Authors:** Thomas B. Sheridan
+**Year:** 2002
+**Journal:** Human Factors
+
+[Paper / DOI](https://doi.org/10.1518/0018720024499839)
+
+This work discusses human supervisory control and provides useful concepts for understanding human involvement in increasingly autonomous systems.
+
 ## Trust in AI and Human–AI Collaboration
 
 ### Human Trust in Artificial Intelligence: Review of Empirical Research
@@ -188,6 +238,64 @@ Examines how AI explanations influence human acceptance and team performance, hi
 [Paper / DOI](https://doi.org/10.1145/3538882.3542790)
 
 Discusses the importance of maintaining meaningful human control while increasing automation and AI autonomy.
+
+
+
+
+## Trust Calibration and AI Transparency
+
+### Calibrated Trust in Human–Robot Teams
+
+**Authors:** C. Robinette, A. M. Howard, and A. R. Wagner
+**Year:** 2016
+**Conference:** ACM/IEEE International Conference on Human-Robot Interaction
+
+[Paper / DOI](https://doi.org/10.1109/HRI.2016.7451777)
+
+This research investigates how people develop and adjust trust when collaborating with robotic systems, making it relevant to trust calibration in human–agent collaboration.
+
+### The Effects of Transparency on Trust in Human–Robot Interaction
+
+**Authors:** Matthew Gombolay, Reed Jensen, Jessica Diaz, and Julie Shah
+**Year:** 2017
+**Conference:** ACM/IEEE International Conference on Human-Robot Interaction
+
+[Paper / DOI](https://doi.org/10.1145/2909824.3020254)
+
+This work explores how system transparency and communication can influence human understanding and trust in autonomous systems.
+
+### Appropriate Reliance on AI Advice: The Role of Explanations and Confidence
+
+**Authors:** Harmanpreet Kaur, Harsha Nori, Samuel Jenkins, et al.
+**Year:** 2020
+**Conference:** CHI Conference on Human Factors in Computing Systems
+
+[Paper / DOI](https://doi.org/10.1145/3313831.3376219)
+
+This paper examines how people interact with machine-learning systems and how explanations and system feedback can influence understanding and reliance.
+
+## Human Oversight and Autonomous Systems
+
+### Human-in-the-Loop Machine Learning
+
+**Authors:** Saleema Amershi, Maya Cakmak, W. Bradley Knox, and Todd Kulesza
+**Year:** 2014
+**Journal:** AI Magazine
+
+[Paper / DOI](https://doi.org/10.1609/aimag.v35i4.2513)
+
+This paper reviews approaches that incorporate human feedback and oversight into machine-learning systems, supporting the idea that autonomous AI should maintain meaningful human involvement.
+
+### Toward Human-Centered AI
+
+**Authors:** Ben Shneiderman
+**Year:** 2020
+**Journal:** Communications of the ACM
+
+[Paper / DOI](https://doi.org/10.1145/3376898)
+
+This paper presents a human-centered approach to AI design that emphasizes human control, reliability, safety, and responsible deployment.
+
 
 ### Key Research Areas
 
