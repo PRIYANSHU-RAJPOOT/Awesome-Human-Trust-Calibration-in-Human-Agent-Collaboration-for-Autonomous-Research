@@ -206,7 +206,7 @@ Future research on autonomous research agents should investigate:
 
 Relevant datasets and benchmark resources for studying trust, human–AI interaction, and human factors will be documented in:
 
-[View Datasets](datasets/datasets.md)
+[View Datasets](datasets/dataset.md)
 
 ## Tools and Libraries
 
