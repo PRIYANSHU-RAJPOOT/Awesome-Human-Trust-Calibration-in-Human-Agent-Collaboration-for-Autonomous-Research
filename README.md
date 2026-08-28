@@ -227,8 +227,6 @@ Provides practical guidelines for designing human–AI systems, including commun
 
 Examines how AI explanations influence human acceptance and team performance, highlighting that explanations can increase acceptance without always improving decision quality.
 
-## Autonomous Research and Human Oversight
-
 ### Human-Centered AI: Ensuring Human Control While Increasing Automation
 
 **Author:** Ben Shneiderman
