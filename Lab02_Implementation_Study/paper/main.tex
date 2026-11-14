@@ -1,0 +1,37 @@
+\\documentclass[11pt]{article}
+\\usepackage[margin=1in]{geometry}
+\\usepackage{booktabs,graphicx,amsmath,hyperref,enumitem}
+\\title{A Controlled Study of Retrieval Error Propagation and Evidence-Recovery Checkpoints in Scientific Claim Verification}
+\\author{Priyanshu}
+\\date{Research protocol draft}
+\\begin{document}
+\\maketitle
+\\begin{abstract}
+Autonomous research workflows combine retrieval, evidence selection, claim assessment and synthesis. This protocol specifies a controlled study using SciFact to examine how retrieval corruption affects evidence selection and whether a predefined recovery checkpoint mitigates that effect. Conditions compare clean retrieval, corrupted retrieval, and identical corrupted retrieval followed by a checkpoint. The primary planned outcome is macro-F1 for final claim labels, subject to official evaluator verification. Baseline execution and experimental evidence remain pending; no empirical findings are claimed.
+\\end{abstract}
+\\section{Motivation}
+The supplied review identifies multi-step error propagation and adaptive human checkpoints as future directions. This study operationalizes one bounded technical pathway. It does not directly measure human trust or reliance.
+\\section{Research Questions}
+RQ1: How does controlled retrieval corruption affect evidence selection and final claim verification?
+RQ2: Does a predefined evidence-validation/recovery checkpoint reduce downstream impact compared with the same corrupted pipeline without the checkpoint?
+\\section{Dataset and Baseline}
+The candidate benchmark is SciFact (Wadden et al., EMNLP 2020). The intended baseline is the official TF-IDF retrieval and rationale-selection pipeline, with label prediction to be audited against official code. SciFact's test labels are not public; initial labelled evaluation uses the official dev partition. The official repository recommends legacy Python 3.7-era dependencies; compatibility with current Colab is not assumed.
+\\section{Conditions}
+C0: clean retrieval, no checkpoint. C1: corrupted retrieval, no checkpoint. C2: same corrupted candidate set as C1, with a label-blind checkpoint/recovery pass. C3 optional: clean retrieval with checkpoint.
+\\section{Controls}
+Use identical claim IDs, corpus snapshot, retrieval settings and evaluator. Corruption selection must not inspect gold labels, evidence IDs or rationale annotations. Freeze corruption and checkpoint rules before main evaluation. Record candidate counts, retrieval calls and runtime; use a budget-matched control if C2 receives extra compute.
+\\section{Measures}
+Primary planned comparison is paired C2 versus C1 macro-F1, conditional on validating official label/evaluator conventions. Secondary measures include official evidence/rationale precision, recall and F1, error/recovery/regression rates, candidates examined and runtime. Repeated seeds are perturbation replicates, not independent claims. Use paired uncertainty estimates and avoid significance claims without a valid test.
+\\section{Validity and Limitations}
+This benchmark evaluates a technical reliability pathway, not human trust calibration. SciFact is a bounded benchmark; evidence overlap is not complete semantic support. Small development samples and extra retrieval budget can confound results. These limitations will be explicit.
+\\section{Current Status}
+Environment verification, dataset acquisition, baseline reproduction and experiments remain pending. The next steps are to run the Colab check, audit official code and evaluator, reproduce the clean baseline, freeze intervention rules, and then run paired conditions. Results and discussion must be written from actual outputs.
+\\begin{thebibliography}{9}
+\\bibitem{lee2004} J. D. Lee and K. A. See. Trust in Automation: Designing for Appropriate Reliance. Human Factors, 2004.
+\\bibitem{hoff2015} K. A. Hoff and M. Bashir. Trust in Automation: Integrating Empirical Evidence on Factors That Influence Trust. Human Factors, 2015.
+\\bibitem{dietvorst2015} B. J. Dietvorst, J. P. Simmons, and C. Massey. Algorithm Aversion. JEP: General, 2015.
+\\bibitem{logg2019} J. M. Logg, J. A. Minson, and D. A. Moore. Algorithm Appreciation. OBHDP, 2019.
+\\bibitem{bansal2021} G. Bansal et al. Does the Whole Exceed its Parts? CHI, 2021.
+\\bibitem{wadden2020} D. Wadden et al. Fact or Fiction: Verifying Scientific Claims. EMNLP, 2020.
+\\end{thebibliography}
+\\end{document}

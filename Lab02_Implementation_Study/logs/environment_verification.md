@@ -1,0 +1,2 @@
+# Environment verification
+Status: not yet run in the user's Colab. Proposed package pins are in requirements.txt. Compatibility is not assumed. Required evidence: Python/platform, CPU/RAM/GPU, pip check, smoke test and unit-test output.
