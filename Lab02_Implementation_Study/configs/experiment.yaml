@@ -1,0 +1,30 @@
+study:
+  name: scifact_retrieval_error_propagation
+  status: blocked_pending_baseline_validation
+  pathway: B
+dataset:
+  name: SciFact
+  split: dev
+  repository_commit: null
+  checksums: null
+reproducibility:
+  master_seed: 13
+  seeds: [13, 37, 73, 101, 137]
+conditions:
+  C0: {corruption: false, checkpoint: false}
+  C1: {corruption: true, checkpoint: false}
+  C2: {corruption: true, checkpoint: true, match_corruption_to: C1}
+  C3: {corruption: false, checkpoint: true, optional: true}
+evaluation:
+  primary_metric: macro_f1
+  primary_comparison: C2_minus_C1
+  paired_unit: claim_id
+  confidence_interval: paired_bootstrap_95_percent
+corruption:
+  policy: null
+  label_blind: true
+  may_use_gold_evidence_or_labels: false
+checkpoint:
+  rule: null
+  freeze_before_main_evaluation: true
+  fallback: fixed_expanded_retrieval_pass_not_adaptive
