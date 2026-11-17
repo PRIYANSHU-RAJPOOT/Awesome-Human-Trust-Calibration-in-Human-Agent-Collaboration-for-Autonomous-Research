@@ -3,7 +3,7 @@
 **Topic:** Human Trust Calibration in Human–Agent Collaboration for Autonomous Research  
 **Candidate study:** Retrieval-error propagation and evidence-recovery checkpoints in scientific claim verification  
 **Benchmark candidate:** SciFact  
-**Status:** Research design and repository scaffold prepared; environment, baseline and experimental evidence remain pending.
+**Status:** Corrected four-condition retrieval experiment completed on the labelled SciFact development split; paper and multi-seed/baseline validation work remain in progress.
 
 ## Research question
 How does controlled retrieval corruption affect evidence selection and final scientific claim verification, and does a predefined evidence-validation/recovery checkpoint reduce that impact?
@@ -39,3 +39,10 @@ This branch does not claim a successful Colab run, dataset download, baseline re
 
 ## Reproducibility
 Master seed 13; planned seeds 13, 37, 73, 101, 137. Record Python/package versions, runtime/hardware, code and dataset commits, file checksums, config, exact commands, and raw per-claim outputs.
+
+## Latest experimental progress
+The corrected experiment has now been run. See [corrected results report](docs/corrected_results_report.md), [primary metrics for 188 evidence-bearing claims](results/primary_metrics_evidence_bearing.csv), and [secondary metrics for all 300 claims](results/secondary_metrics_all_300.csv).
+
+Primary comparison (188 evidence-bearing claims): C0 clean TF-IDF macro-F1 0.3786; C1 corrupted TF-IDF 0.0938; C2 independent BM25+RRF recovery 0.1603; C3 clean BM25 0.4212. C2 improves over C1 by 0.06649 (paired claim-bootstrap 95% interval [0.04255, 0.09043]), but recovery is partial. C3 is strongest in this run.
+
+Important: this is evidence-document retrieval, not end-to-end SciFact claim classification and not a human trust/reliance study. The BM25 recovery condition uses additional retrieval computation and is not compute-budget matched. Only seed 37 has been run so far.
