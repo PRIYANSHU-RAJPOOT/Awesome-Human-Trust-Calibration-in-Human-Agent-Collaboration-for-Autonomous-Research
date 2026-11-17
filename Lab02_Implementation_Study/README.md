@@ -46,3 +46,13 @@ The corrected experiment has now been run. See [corrected results report](docs/c
 Primary comparison (188 evidence-bearing claims): C0 clean TF-IDF macro-F1 0.3786; C1 corrupted TF-IDF 0.0938; C2 independent BM25+RRF recovery 0.1603; C3 clean BM25 0.4212. C2 improves over C1 by 0.06649 (paired claim-bootstrap 95% interval [0.04255, 0.09043]), but recovery is partial. C3 is strongest in this run.
 
 Important: this is evidence-document retrieval, not end-to-end SciFact claim classification and not a human trust/reliance study. The BM25 recovery condition uses additional retrieval computation and is not compute-budget matched. Only seed 37 has been run so far.
+
+
+## Updated full manuscript (17 November 2026)
+The previous short protocol draft has been replaced with a corrected experimental manuscript:
+- [Open updated LaTeX source](paper/main.tex)
+- [Manuscript compilation instructions](paper/README.md)
+- [Primary metrics: 188 evidence-bearing claims](results/primary_metrics_evidence_bearing.csv)
+- [Secondary metrics: all 300 development claims](results/secondary_metrics_all_300.csv)
+
+The LaTeX source contains the corrected C0-C3 results, equations, a TikZ workflow diagram, tables, paired bootstrap analysis, discussion, limitations and references. It is self-contained with respect to figures and can be compiled using pdfLaTeX from the `paper/` directory.
