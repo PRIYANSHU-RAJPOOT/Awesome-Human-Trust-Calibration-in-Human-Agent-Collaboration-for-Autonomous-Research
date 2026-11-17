@@ -1,5 +1,5 @@
 condition,n_claims,macro_precision,macro_recall,macro_f1,hit_at_3
-C0_clean_TFIDF_evidence_bearing,188,0.2571,0.7438,0.3786,0.7553
-C1_corrupted_TFIDF_evidence_bearing,188,0.0656,0.1791,0.0938,0.1968
-C2_BM25_RRF_evidence_bearing,188,0.1099,0.3121,0.1603,0.3298
-C3_clean_BM25_evidence_bearing,188,0.2872,0.8236,0.4212,0.8404
+C0_clean_TFIDF,188,0.2571,0.7438,0.3786,0.7553
+C1_corrupted_TFIDF,188,0.0656,0.1791,0.0938,0.1968
+C2_BM25_RRF_recovery,188,0.1099,0.3121,0.1603,0.3298
+C3_clean_BM25,188,0.2872,0.8236,0.4212,0.8404
