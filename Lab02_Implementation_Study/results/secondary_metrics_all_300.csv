@@ -1,0 +1,5 @@
+condition,n_claims,macro_precision,macro_recall,macro_f1,hit_at_3
+C0_clean_TFIDF,300,0.1611,0.4661,0.2373,0.4733
+C1_corrupted_TFIDF,300,0.0411,0.1122,0.0588,0.1233
+C2_BM25_RRF,300,0.0689,0.1956,0.1005,0.2067
+C3_clean_BM25,300,0.1800,0.5161,0.2639,0.5267
