@@ -1,198 +1,497 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[margin=0.82in]{geometry}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern,microtype}
-\usepackage{graphicx,booktabs,tabularx,array}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
 \usepackage{amsmath,amssymb}
 \usepackage{enumitem}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
-\usepackage{xcolor,float,caption,hyperref,natbib}
+\usetikzlibrary{arrows.meta,positioning,fit,shapes.geometric,calc}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
-\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
-\renewcommand{\arraystretch}{1.16}
-\title{\textbf{Retrieval Error Propagation in Scientific Claim Verification:}\\A Controlled Study of Independent Evidence-Recovery Checkpoints}
-\author{Priyanshu\\Indian Institute of Information Technology Allahabad, India}
-\date{Corrected experimental manuscript}
-\begin{document}\maketitle
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.18}
+
+\title{\textbf{Retrieval Error Propagation in Scientific Claim Verification:}\\
+A Controlled Study of Independent Evidence-Recovery Checkpoints}
+\author{Priyanshu\\
+Indian Institute of Information Technology Allahabad, India}
+\date{Research manuscript}
+
+\begin{document}
+\maketitle
 
 \begin{abstract}
-Autonomous research workflows depend on document retrieval, evidence selection, synthesis, and claim assessment. Errors in early stages can constrain downstream decisions by changing which evidence is available. Motivated by research directions on multi-step error propagation and checkpoints, this study evaluates retrieval robustness on SciFact. Four conditions are compared: clean TF--IDF retrieval (C0), rank-corrupted TF--IDF retrieval (C1), independent BM25 retrieval combined with reciprocal-rank fusion (C2), and clean BM25 retrieval (C3). The corrected run covers 5,183 abstracts and 300 labelled development claims. Since 112 claims have empty evidence mappings, primary evidence-retrieval metrics are computed over 188 evidence-bearing claims. Macro-F1 is 0.3786 for C0, 0.0938 for C1, 0.1603 for C2, and 0.4212 for C3. The paired C2--C1 difference is 0.0665 (95\% claim-bootstrap interval [0.0426, 0.0904]). Thus, the independent recovery method partially mitigates the synthetic retrieval corruption but does not restore clean TF--IDF performance; clean BM25 is strongest. The study evaluates evidence-document retrieval only. It does not measure human trust, reliance, or end-to-end claim-verification classification.
+An autonomous research process requires multiple steps to process information such as query creation, document retrieval, evidence selection, evidence analysis, and claim evaluation. An error in an earlier stage could cause issues with the evidence available to downstream stages. Inspired by the directions suggested in the literature review provided, this study outlines an experiment to evaluate the robustness of retrieval in a controlled environment using the SciFact benchmark for scientific claim verification.
+
+The experiment has three scenarios; one where retrieval is performed with clean TF--IDF, one where the retrieval is corrupted without labelling knowledge, and one where recovery is attempted using an independent BM25 retrieval with reciprocal rank fusion. A fourth scenario using BM25 clean retrieval has also been included.
+
+Performance was evaluated on the labelled development split, calculating the precision, recall, F1, and hit@3 for evidence document retrieval. Bootstrap uncertainty was calculated for each pair at claim level.
+
+An initial experiment was run for all 300 labelled development claims. This revealed that introducing a distractor document to replace the top ranked TF--IDF document caused performance to drop from a macro F1 of 0.2373 to 0.0588. However, the recovery was misleading as the results followed the clean ranking exactly. The new experiment replaces the top retrieval using an independent BM25 pass.
+
+Due to 112 claims having no annotated evidence documents, metrics were only calculated using the 188 claims with evidence. The macro F1 of clean TF--IDF was 0.3786, corrupted TF--IDF was 0.0938, BM25+RRF recovery had a macro-F1 of 0.1603, and clean BM25 had a macro-F1 of 0.4212. This resulted in a macro-F1 difference of 0.0665 between pairs C2 and C1 (Bootstrapped 95\% CI [0.0426, 0.0904]).
+
+The recovery improved performance compared to the corrupted retrieval, however it did not reach the levels seen in the clean TF--IDF retrieval. Clean BM25 performed best. This study only focuses on the evidence document retrieval, so trust, reliance, or classification performance for end to end claim verification was not measured.
 \end{abstract}
-\textbf{Keywords:} scientific claim verification; retrieval robustness; evidence retrieval; error propagation; BM25; TF--IDF; reciprocal-rank fusion; SciFact
+
+\textbf{Keywords:} Scientific claim verification, Retrieval robustness, Evidence retrieval, Error propagation, BM25, TF--IDF, Reciprocal rank fusion, SciFact
 
 \section{Introduction}
-Research agents increasingly perform sequences of dependent operations: formulating a query, retrieving scientific documents, selecting evidence, comparing findings, and generating a conclusion. A failure early in this sequence may propagate because later stages can only reason over the material made available to them. A relevant abstract displaced during retrieval may never reach evidence verification or synthesis.
 
-Trust in automation motivates the broader human-factors context. Lee and See argue for appropriate reliance rather than maximum trust \citep{lee2004}; Hoff and Bashir discuss dispositional, situational, and learned influences on trust \citep{hoff2015}. Algorithm aversion and appreciation show that observed algorithmic errors and performance can change people's willingness to rely on automated advice \citep{dietvorst2015,logg2019}. Explanations can affect acceptance without necessarily improving complementary team performance \citep{bansal2021}. These findings motivate careful checkpoints, but a retrieval benchmark alone cannot measure human trust.
+Research agents are being used in more complex scenarios beyond just answering a search query. For example, if a research agent is tasked with retrieving scientific documents, selecting evidence, comparing findings, summarising sources, and drawing conclusions, then this can be modelled as a chain of processes. If errors occur in the retrieval or evidence selection processes then the evidence may not be complete or misleading for downstream processes.
 
-The supplied literature review identifies multi-step error propagation and adaptive checkpoints as research directions. This work operationalizes one bounded part of that agenda: whether an independent retrieval pass can recover annotated evidence documents after a controlled top-rank retrieval perturbation.
+Trust has become a key factor in research concerning this. It is important to ensure users place the right amount of trust in an automated system. This means the aim is to get the right amount of reliance \citep{lee2004} rather than maximum trust. Factors affecting trust include disposition, situation, and learned factors \citep{hoff2015}. Further research into algorithm aversion and appreciation has shown that performance can also influence how much trust a user places in a system \citep{dietvorst2015,logg2019}. Explanations in human-AI interactions may increase acceptance, however it doesn't always improve performance on complementary tasks \citep{bansal2021}.
 
-\subsection{Research questions}
-\begin{enumerate}[leftmargin=1.5em]
-\item RQ1: How does label-blind corruption of the top-ranked TF--IDF document affect evidence-document retrieval?
-\item RQ2: Does an independent BM25 pass combined with reciprocal-rank fusion recover evidence-document retrieval performance?
-\item RQ3: What retrieval-performance and computational trade-offs accompany the additional recovery pass?
-\end{enumerate}
+The literature review provided shows that there are research directions in multi-step error propagation and adaptive human checkpoints. This study aims to simplify the research direction into something measurable. How does introducing a controlled error in the retrieval impact the annotated evidence document retrieval? Can introducing an independent retrieval path improve this to some degree? This is the first step to operationalising an evidence checkpoint, however it is not claiming to measure trust calibration.
 
-\subsection{Contributions and scope}
-The study contributes a reproducible rank-based perturbation, an independent BM25+RRF recovery condition, paired claim-level retrieval evaluation, and an explicit distinction between retrieval robustness and human trust calibration. It is not a complete reproduction of the official SciFact verifier and is not a participant study.
+\subsection{Problem Statement}
 
-\section{Related Work}
-\subsection{Trust and appropriate reliance}
-Trust is an expectation about system behavior; reliance is reflected in user action. Designing for appropriate reliance requires system capability and task conditions to be visible to users \citep{lee2004,hoff2015}. The present study measures neither construct directly.
+A retrieval system will return a list of abstracts ordered by relevance to a scientific claim. The evidence verification process cannot verify any documents that are not provided to it. A high relevance document may be replaced by a distractor document causing the evidence set to lack relevant evidence. This study looks to introduce a change to the top TF--IDF result and see if an additional retrieval path using an independent BM25 can help.
 
-\subsection{Algorithmic advice and human--AI interaction}
-Algorithm aversion describes reduced willingness to use an algorithm after observing it err \citep{dietvorst2015}, whereas algorithm appreciation describes contexts in which people prefer algorithmic advice \citep{logg2019}. Human--AI interaction guidelines emphasize communicating capabilities, supporting user control, and designing feedback \citep{amershi2019}. These works motivate checkpoints but do not imply that a retrieval metric is a proxy for trust.
+\subsection{Research Questions}
 
-\subsection{Scientific claim verification}
-SciFact provides scientific claims, abstracts, and evidence annotations for claim verification \citep{wadden2020}. This study uses the labelled development split and treats annotated evidence document identifiers as retrieval targets. It does not predict SUPPORT, CONTRADICT, or NOT ENOUGH INFO labels.
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{RQ1:} How does a controlled, label agnostic change to the top ranked TF--IDF document effect the evidence document retrieval for SciFact development claims?
+    \item \textbf{RQ2:} How much can an independent BM25 retrieval path with reciprocal rank fusion improve the performance of evidence document retrieval?
+    \item \textbf{RQ3:} What is the trade off between retrieval performance and computational cost that the additional retrieval path causes?
+\end{itemize}
 
-\section{Methodology}
-\subsection{Dataset and execution environment}
-The corrected Colab output records 5,183 corpus abstracts, 300 labelled development claims, and 300 test claims. The downloaded test file contains no public evidence field. Among the 300 development claims, 188 contain at least one evidence document and 112 have an empty evidence mapping. The primary retrieval analysis therefore uses the 188 evidence-bearing claims; all-300 results are reported separately as a descriptive secondary view.
+\subsection{Contributions}
 
-\begin{table}[H]\centering
-\caption{Dataset and runtime information from the corrected run.}
-\begin{tabularx}{0.82\linewidth}{Xr}\toprule
-Corpus abstracts & 5,183\\
-Labelled development claims & 300\\
-Evidence-bearing development claims & 188\\
-Development claims with empty evidence mapping & 112\\
-Test claims (no public evidence labels) & 300\\
-Python & 3.13.18\\
-scikit-learn & 1.6.1\\
-Random seed & 37\\\bottomrule
-\end{tabularx}\end{table}
-The downloaded archive SHA-256 was \texttt{11c621288d41ac144d29b13b0f8503b3820b7d6e8b1f6ff24dff335c196d76be}.
+The contributions of this study are:
+\begin{itemize}[leftmargin=1.5em]
+    \item A replicable method of introducing perturbations to the evidence without looking at the gold evidence to select distractors.
+    \item An evidence recovery scenario using a different retrieval method.
+    \item Bootstrap uncertainty in pairs at claim level.
+    \item Clearly separating retrieval robustness from trust calibration.
+\end{itemize}
 
-\subsection{TF--IDF retrieval}
-Each document is represented by concatenating its title and abstract sentences. The TF--IDF vectorizer uses English stop-word removal and word n-grams of length one and two. For query vector $\mathbf{x}_q$ and document vector $\mathbf{x}_{d_j}$, the score is
-\[
-s_{\mathrm{TFIDF}}(q,d_j)=\mathbf{x}_q^\top\mathbf{x}_{d_j}.
-\]
-Documents are ranked by descending score and the top three are retained.
+This is not an evaluation of the full SciFact verifier or a participant study into human reliance.
 
-\subsection{Independent BM25 retrieval}
-The second retrieval path uses BM25Okapi over lower-cased alphanumeric tokens. Its top 50 documents are produced independently of the TF--IDF ranking. BM25 provides a separate lexical relevance signal; it is not treated as an oracle or as gold evidence.
+\section{Background and Related Work}
 
-\subsection{Experimental conditions}
-\begin{table}[H]\centering
-\caption{Four experimental conditions.}
-\begin{tabularx}{\linewidth}{lX}\toprule
-C0 & Clean TF--IDF top-three ranking; reference condition.\\
-C1 & Corrupted TF--IDF top-three ranking; rank one is replaced by a document sampled from original ranks 4--20.\\
-C2 & Corrupted TF--IDF top-three union BM25 top-50, ranked by reciprocal-rank fusion.\\
-C3 & Clean BM25 top-three ranking; independent retriever comparator.\\\bottomrule
-\end{tabularx}\end{table}
+\subsection{Trust Calibration}
 
-\subsection{Label-blind corruption}
-For each claim, the highest-ranked TF--IDF document is replaced by one document selected uniformly from original ranks 4 through 20. The selection uses retrieval rank and fixed random seed 37 only. Gold evidence identifiers, evidence labels, and rationale sentences are not accessed during corruption.
+Trust is an expectation, whereas reliance is expressed through action. An individual might express high confidence and fully validate recommendations, or express medium confidence and accept most outputs. For autonomous research, this is important as accepting a generated statement is not the same as it being correct based on evidence. Trust should be calibrated to match an agent's proven capabilities, and task specific context \citep{lee2004,hoff2015}.
 
-\subsection{Recovery by reciprocal-rank fusion}
-C2 receives the corrupted TF--IDF top-three list and the independent BM25 top-50 list. It does not access the clean TF--IDF reserve ranking or gold annotations. For candidate document $d$, reciprocal-rank fusion is
-\[
-\mathrm{RRF}(d)=\sum_{r\in\mathcal{R}}\frac{1}{k+\mathrm{rank}_r(d)},
-\]
-where $\mathcal{R}$ contains the corrupted TF--IDF ranking and BM25 ranking, and $k=60$. The three highest-scoring candidates are returned; ties are resolved deterministically by document identifier. This is a fixed computational recovery step, not an adaptive human checkpoint. It incurs an additional full-corpus retrieval pass and is not compute-budget matched to C1.
+\subsection{Algorithmic Advice}
 
-\begin{figure}[H]\centering
-\begin{tikzpicture}[node distance=0.45cm and 0.35cm,box/.style={draw,rounded corners,align=center,minimum width=2.05cm,minimum height=0.75cm,font=\small},arr/.style={-{Latex[length=2mm]},thick}]
+Algorithm aversion refers to decreased likelihood of using an algorithm after viewing an error, even though it may perform well overall \citep{dietvorst2015}. Algorithm appreciation is when individuals prefer to use advice from an algorithm \citep{logg2019}. This suggests that viewing errors can affect reliance but depends on the context and expertise.
+
+Explanations can help to improve acceptance of AI recommendations, although this may not improve complementary performance \citep{bansal2021}. Any checkpoints should therefore be assessed on how they improve the evidence available to make a decision.
+
+\subsection{Human-AI Interaction}
+
+Guidelines have been provided for describing system capabilities, giving users control and providing effective feedback \citep{amershi2019}. A focus has been placed on ensuring humans are in control whilst increasing helpful automation \citep{shneiderman2022}. This motivates checkpoints within autonomous research to occur at impactful points.
+
+\subsection{Evidence Verification of Scientific Claims}
+
+SciFact has been proposed as a benchmark for verifying scientific claims against scientific abstracts, with evidence rationales included \citep{wadden2020}. This provides a controlled environment to retrieve evidence documents.
+
+This study uses the labelled development split as the test split does not include gold evidence labels for the public to view in the downloaded version. This means that checkpoints are aimed to improve the annotated evidence document identifiers.
+
+\subsection{Problem Statement}
+
+Overall, this review looks at error propagation within multi-step research pipelines and the impact of placing human checkpoints. This study does not aim to replicate a full human-agent pipeline, instead only looking at one dependency within the pipeline. This looks at whether any relevant evidence abstracts will remain in the small pool of candidates after corruption during evidence retrieval.
+
+The BM25 step is a computational attempt at recovery. It is unclear whether a human checkpoint will improve trust, reliance, or verification behaviour from researchers. This would require another user study.
+
+\section{Study Design}
+
+\subsection{Overview}
+
+The study involves four different scenarios to recover the information. It uses the same claims and corpus snap-shot. The corruption policy is fixed in advance.
+
+The recovery module is provided with the corrupted top-3 TF--IDF list and the BM25 candidate list. It does not have access to the clean TF--IDF back-up or any gold evidence labels.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.55cm and 0.45cm,
+  box/.style={draw,rounded corners,align=center,minimum width=2.15cm,minimum height=0.82cm,font=\small},
+  smallbox/.style={draw,rounded corners,align=center,minimum width=1.9cm,minimum height=0.72cm,font=\small},
+  arr/.style={-{Latex[length=2mm]},thick}
+]
 \node[box] (claim) {Scientific claim};
-\node[box,right=of claim] (tf) {TF--IDF\\retrieval};
-\node[box,right=of tf] (cor) {Rank-one\\corruption};
-\node[box,right=of cor] (c1) {C1 corrupted\\top-three};
-\node[box,below=0.9cm of cor] (bm) {Independent\\BM25 top-50};
-\node[box,right=of bm] (rrf) {RRF recovery\\checkpoint};
-\node[box,right=of rrf] (c2) {C2 recovered\\top-three};
-\node[box,below=0.85cm of rrf,minimum width=3.0cm] (eval) {Gold evidence used only\\for final evaluation};
-\draw[arr] (claim)--(tf);\draw[arr] (tf)--(cor);\draw[arr] (cor)--(c1);
-\draw[arr] (claim.south) |- (bm.west);
+\node[box,right=of claim] (corpus) {SciFact corpus\\5,183 abstracts};
+\node[box,right=of corpus] (tfidf) {TF--IDF\\retrieval};
+\node[box,right=of tfidf] (perturb) {Top-1 corruption\\(label-blind)};
+\node[box,right=of perturb] (c1) {C1 corrupted\\top-3};
+\draw[arr] (claim) -- (tfidf);
+\draw[arr] (corpus) -- (tfidf);
+\draw[arr] (tfidf) -- (perturb);
+\draw[arr] (perturb) -- (c1);
+\node[smallbox,below=1.05cm of perturb] (bm25) {Independent\\BM25 retrieval};
+\node[smallbox,right=0.7cm of bm25] (rrf) {RRF recovery\\checkpoint};
+\node[smallbox,right=0.7cm of rrf] (c2) {C2 recovered\\top-3};
+\draw[arr] (claim.south) |- (bm25.west);
+\draw[arr] (corpus.south) |- (bm25.west);
 \draw[arr] (c1.south) |- (rrf.north);
-\draw[arr] (bm)--(rrf);\draw[arr] (rrf)--(c2);
-\draw[arr] (c2.south) -- (eval.north);
+\draw[arr] (bm25) -- (rrf);
+\draw[arr] (rrf) -- (c2);
+\node[box,below=1.0cm of rrf,minimum width=3.2cm] (eval) {Gold evidence opened only\\after rankings are frozen};
+\draw[arr] (c1.south) |- (eval.west);
+\draw[arr] (c2.south) |- (eval.east);
 \end{tikzpicture}
-\caption{Corrected retrieval and recovery workflow.}
+\caption{Revised experimental workflow. The independent BM25 path provides additional candidate evidence for the recovery condition. Gold evidence annotations are reserved for evaluation.}
+\label{fig:workflow}
 \end{figure}
 
+\subsection{Dataset}
+
+A candidate benchmark using SciFact will be used. In the initial experiment there were 5,183 scientific abstracts in the corpus. There were 300 development claims and 300 test claims with labellings.
+
+In the output from the supplied run, the number of training claims was not noted. Additionally, there were no public gold evidence labels in the test split of the dataset. These numbers should be noted in the corrected experiment. The checksum of the archive should also be noted.
+
+\begin{table}[H]
+\centering
+\caption{Dataset information reported by the preliminary Colab execution.}
+\label{tab:dataset}
+\begin{tabularx}{0.8\linewidth}{Xr}
+\toprule
+\textbf{Component} & \textbf{Count} \\
+\midrule
+Scientific abstracts & 5,183 \\
+Training claims & N/A \\
+Development claims (labellings) & 300 \\
+Test claims & 300 \\
+Gold evidence labels (public) & No \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Document Representation and Retrieval}
+
+TF--IDF was used to retrieve information. Each document within the corpus is combined (title + abstract sentences). The vectoriser removes english stop words and uses unigrams and bigrams.
+
+A cosine similarity score is calculated between the claim $q$ and the document $d_j$:
+\begin{equation}
+s_{\mathrm{TFIDF}}(q,d_j)=\mathbf{x}_q^\top\mathbf{x}_{d_j}.
+\end{equation}
+
+Documents within the corpus are ordered by their score in descending order. The highest three documents are selected as candidates. A back-up list is also kept with up to 50 items. This is for verification purposes and generating candidates. The corrected recovery module does not have access to the clean TF--IDF back-up list.
+
+BM25 is used as the separate retriever. The documents are tokenised using lowercase alphanumeric tokens. BM25Okapi is used to calculate the relevance score between the query and document. The score is calculated using term frequency, inverse document frequency and document length normalisation. The BM25 candidates are a separate list.
+
+\subsection{Scenarios}
+
+There are four scenarios being considered in the corrected implementation:
+
+\begin{table}[H]
+\centering
+\caption{Experimental conditions in the corrected implementation.}
+\label{tab:conditions}
+\begin{tabularx}{\linewidth}{l X X}
+\toprule
+\textbf{Scenario ID} & \textbf{Scenario} & \textbf{Purpose} \\
+\midrule
+C0 & Clean TF--IDF Top-3 & As a baseline for retrieval performance. \\
+C1 & Corrupted TF--IDF Top-3 & Shows how sensitive the module is to errors at the top of the rankings. \\
+C2 & Corrupted TF--IDF Top-3 + BM25 Candidates (RRF) & Shows if having an alternative retrieval method can recover relevant evidence. \\
+C3 & Clean BM25 Top-3 & As a comparison for the separate retrieval method. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Label Blind Corruption}
+
+The top ranked TF--IDF document for each claim is replaced with one of the candidates from positions 4--20. The remaining two documents from the original top-3 ranking are kept.
+
+The candidate is chosen purely based on the ranking and a pre-defined pseudo-random seed. Gold evidence IDs, SUPPORT/CONTRADICT labels and rationale sentence labellings are not used.
+
+\subsection{Corrected Recovery Checkpoint}
+
+The corrected recovery checkpoint does not have access to the original clean TF--IDF ranking. It has:
+\begin{enumerate}[leftmargin=1.5em]
+    \item Corrupted TF--IDF Top-3 Documents.
+    \item Top 50 Documents using a separate BM25 pass.
+\end{enumerate}
+
+The candidates are formed from combining both lists. A reciprocal rank fusion score is applied to the candidates:
+\begin{equation}
+\mathrm{RRF}(d)=\sum_{r\in\mathcal{R}}\frac{1}{k+\mathrm{rank}_r(d)}.
+\end{equation}
+
+Where the corrupted TF--IDF and BM25 lists form list $\mathcal{R}$ and $k=60$. The top 3 documents with the highest scores are selected. If two documents have the same score they are ordered using their document ID.
+
+This is a computational checkpoint so additional calculation is needed to retrieve the information. Therefore it cannot be compared with C1 as it would be unfair in terms of computational cost. The runtime and candidate pool should be noted. In future experiments, a fair control should be included. Checkpoints based on confidence level or manual intervention should also be explored.
+
 \section{Evaluation}
-For each claim, let $G_i$ be the set of annotated evidence document identifiers and $P_i$ the retrieved top-three set. Precision, recall, and F1 are
-\[
-P_i=\frac{|G_i\cap P_i|}{|P_i|},\qquad
-R_i=\frac{|G_i\cap P_i|}{|G_i|},\qquad
-F1_i=\frac{2P_iR_i}{P_i+R_i}.
-\]
-Macro metrics are arithmetic means over evidence-bearing claims. Hit@3 is the proportion of claims with at least one gold evidence document in the top three. Claims with empty evidence mappings are excluded from primary metrics because they do not define a positive evidence-document retrieval target; all-300 descriptive values are separately retained.
 
-The primary comparison is paired C2 versus C1 on identical claims. A nonparametric bootstrap resamples claims with replacement and computes the mean per-claim F1 difference. The 95\% percentile interval is based on 5,000 resamples. Claims, not documents, are the resampling unit.
+\subsection{Evidence Document Metrics}
 
-\section{Results}
-\subsection{Primary results: 188 evidence-bearing claims}
-\begin{table}[H]\centering
-\caption{Primary evidence-document retrieval metrics on 188 claims with annotated evidence.}
-\begin{tabular}{lrrrr}\toprule
-Condition & Macro-P & Macro-R & Macro-F1 & Hit@3\\\midrule
-C0 clean TF--IDF & 0.2571 & 0.7438 & 0.3786 & 0.7553\\
-C1 corrupted TF--IDF & 0.0656 & 0.1791 & 0.0938 & 0.1968\\
-C2 BM25+RRF recovery & 0.1099 & 0.3121 & 0.1603 & 0.3298\\
-C3 clean BM25 & \textbf{0.2872} & \textbf{0.8236} & \textbf{0.4212} & \textbf{0.8404}\\
-\bottomrule\end{tabular}\end{table}
+Let $G_i$ be the set of gold evidence documents for a given claim and $P_i$ be the set of top 3 documents retrieved.
 
-\subsection{Secondary results: all 300 claims}
-\begin{table}[H]\centering
-\caption{Descriptive metrics across all 300 development claims, including claims with empty evidence mappings.}
-\begin{tabular}{lrrrr}\toprule
-Condition & Macro-P & Macro-R & Macro-F1 & Hit@3\\\midrule
-C0 clean TF--IDF & 0.1611 & 0.4661 & 0.2373 & 0.4733\\
-C1 corrupted TF--IDF & 0.0411 & 0.1122 & 0.0588 & 0.1233\\
-C2 BM25+RRF recovery & 0.0689 & 0.1956 & 0.1005 & 0.2067\\
-C3 clean BM25 & 0.1800 & 0.5161 & 0.2639 & 0.5267\\
-\bottomrule\end{tabular}\end{table}
-The all-300 table is secondary. Under the submitted evaluator convention, claims with empty evidence mappings receive zero precision, recall, F1, and hit@3.
+\textbf{Precision:}
+\begin{equation}
+P_i^{\mathrm{prec}} = \frac{|G_i\cap P_i|}{|P_i|}.
+\end{equation}
 
-\subsection{Paired recovery analysis}
-On the 188 evidence-bearing claims, C2 improved macro-F1 over C1 by 0.06649. The paired claim-bootstrap 95\% percentile interval was [0.04255, 0.09043]. The C1 condition had 151 hit@3 misses; C2 converted 25 of these to hits and caused zero hit@3 regressions. The recovery rate among C1 misses was 25/151, or 16.56\%. Recovery was therefore partial, not complete.
+\textbf{Recall:}
+\begin{equation}
+P_i^{\mathrm{rec}} = \frac{|G_i\cap P_i|}{|G_i|}.
+\end{equation}
 
-C2 remained below C0 by 0.21829 macro-F1 (95\% paired interval [-0.25712, -0.17999]). C3 exceeded C0 by 0.04255 (95\% paired interval [0.01570, 0.07004]). Clean BM25 was the strongest of the four conditions on this development subset.
+\textbf{F1-score:}
+\begin{equation}
+F1_i = \frac{2P_i^{\mathrm{prec}}P_i^{\mathrm{rec}}}
+{P_i^{\mathrm{prec}} + P_i^{\mathrm{rec}}}.
+\end{equation}
+
+When the denominator is zero, then this value will be zero.
+
+Macro precision, recall, and F1 are calculated by taking the average of the individual scores for each claim. Hit@3 is calculated by seeing how many claims had any gold evidence documents within the top 3.
+
+\subsection{Pairwise Uncertainty}
+
+The main evaluation is between C2 and C1 as they use the same claim IDs.
+
+A non-parametric bootstrap is performed where claims are sampled with replacement, and the difference between the mean F1 values per claim are calculated.
+
+The confidence interval is found by taking the 2.5th and 97.5th percentiles. This is done per claim, not per document. This does not produce more independent datasets.
+
+\subsection{Recovery and Regression}
+
+If C1 has a Hit@3 score of 0 and C2 has a score of 1 then this is considered a correction.
+
+If C1 has a Hit@3 score of 1 and C2 has a score of 0 then this is a regression.
+
+The recovery rate can be calculated by dividing the number of corrections by the total number of misses in C1.
+
+These are extra metrics to evaluate the model.
+
+\section{Initial Run and Correction}
+
+\subsection{Initial Run}
+
+The initial run provided in the Google Colab shows that the Python version is 3.13.18, and scikit-learn version is 1.6.1. There are 5,183 abstracts in the corpus and 300 labelled claims in the development set.
+
+The run completed the TF--IDF retrieval stage and the initial corruption of the claims. The initial retrieval metrics can be seen below.
+
+\begin{table}[H]
+\centering
+\caption{Preliminary retrieval metrics from the first Colab run.}
+\label{tab:pilot}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Condition} & \textbf{Macro-P} & \textbf{Macro-R} & \textbf{Macro-F1} & \textbf{Hit@3}\\
+\midrule
+Clean TF--IDF & 0.1611 & 0.4661 & 0.2373 & 0.4733\\
+Corrupt TF--IDF & 0.0411 & 0.1122 & 0.0588 & 0.1233\\
+Recovered & 0.1611 & 0.4661 & 0.2373 & 0.4733\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This shows that there is a significant drop in evidence document retrieval performance after the corruption.
+
+The results also found that there was a difference in macro-F1 scores between the recovered and corrupted claims of 0.178460. This is a 95\% percentile bootstrap for pairwise uncertainty giving a range of [0.151883, 0.208809].
+
+However, these recovery results are not valid.
+
+\subsection{Why the Recovery Results are not Valid}
+
+Looking at the code can see that the recovered condition is simply taking the original clean TF--IDF top 3 rankings and applying them to each claim.
+
+This means that the predictions are exactly the same as with the clean condition. Therefore the recovery is not a result of an independent validation/recovery algorithm.
+
+This result will not be considered as confirmation. The new C2 method includes an independent BM25 retrieval and RRF. This has been evaluated in the corrected experiment.
+
+\subsection{Corrected Experiment}
+
+The corrected notebook ran all 4 retrieval conditions on the 300 labelled development claims. All conditions used the same corruption seed (37) and there were 5,183 abstracts in the archive.
+
+Of the 300 claims, 188 had 1 or more annotated evidence documents, and 112 had no evidence mapping.
+
+As claims with no annotated evidence documents are not positive targets for evidence retrieval, only the 188 evidence containing claims will be analysed for the main precision, recall, F1 and hit@3 results. However, all 300 claims will still be analysed as a secondary descriptive analysis to show how the model performed over the full development split.
+
+\begin{table}[H]
+\centering
+\caption{Main results on the 188 claims with annotated evidence documents.}
+\label{tab:corrected-primary}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Condition} & \textbf{Macro-P} & \textbf{Macro-R} & \textbf{Macro-F1} & \textbf{Hit@3}\\
+\midrule
+C0 Clean TF--IDF & 0.2571 & 0.7438 & 0.3786 & 0.7553\\
+C1 Corrupt TF--IDF & 0.0656 & 0.1791 & 0.0938 & 0.1968\\
+C2 BM25 RRF Recovery & 0.1099 & 0.3121 & 0.1603 & 0.3298\\
+C3 Clean BM25 & 0.2872 & 0.8236 & 0.4212 & 0.8404\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Results across all 300 development claims.}
+\label{tab:corrected-all}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Condition} & \textbf{Macro-P} & \textbf{Macro-R} & \textbf{Macro-F1} & \textbf{Hit@3}\\
+\midrule
+C0 Clean TF--IDF & 0.1611 & 0.4661 & 0.2373 & 0.4733\\
+C1 Corrupt TF--IDF & 0.0411 & 0.1122 & 0.0588 & 0.1233\\
+C2 BM25 RRF Recovery & 0.0689 & 0.1956 & 0.1005 & 0.2067\\
+C3 Clean BM25 & 0.1800 & 0.5161 & 0.2639 & 0.5267\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/retrieval_metric_comparison.png}
+\caption{Retrieval metrics across the four conditions on the full labelled development set. The numerical table for evidence-bearing claims is the primary evaluation.}
+\label{fig:metrics}
+\end{figure}
+
+\subsection{Pairwise Bootstrapping}
+
+We see an improvement in macro-F1 score on the evidence subset for C2 (0.0665 increase).
+
+Using pairwise bootstrapping on claims, we see a 95\% percentile range of [0.0426, 0.0904] with 5,000 resamples.
+
+During recovery 25 of C1's 151 hit@3 misses were recovered giving us a recovery rate of 16.56\%. This shows that recovery was not complete.
+
+C2 still falls short of the clean TF--IDF baseline by 0.2183. We have a 95\% pairwise bootstrap confidence interval of [-0.2571, -0.1800].
+
+The clean BM25 condition had the highest primary macro-F1 score of 0.4212, improving on clean TF--IDF by 0.0426. We have a 95\% pairwise bootstrap confidence interval of [0.0157, 0.0700].
+
+This indicates that BM25 only was a better retrieval strategy for this dataset and implementation. Using BM25 alongside the corrupted TF--IDF list did not provide any improvement over clean BM25.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/per_claim_f1_boxplot.png}
+\caption{Distribution of per-claim evidence-document F1 across retrieval conditions.}
+\label{fig:boxplot}
+\end{figure}
+
+\subsection{Discussion}
+
+The results after correction give a more limited conclusion. It shows that using an independent BM25 retrieval path alongside reciprocal rank fusion can recover some of the lost evidence document hits from synthetic corruption, but not completely.
+
+It cannot be concluded that adding a human adaptable checkpoint will improve the results of autonomous research. The additional BM25 retrieval would also require additional computational power and was not tested with an equal computational budget.
 
 \section{Discussion}
-The corrected experiment supports the claim that the specified rank-based perturbation can substantially reduce evidence-document retrieval. It also shows that an independent BM25 retrieval path with RRF can recover some evidence hits lost under corruption. However, C2 remains well below C0, and C3 outperforms all other conditions. The result is consequently evidence for partial retrieval recovery under one synthetic perturbation, not evidence that an adaptive human checkpoint improves research outcomes.
 
-The BM25-only comparator is important: it shows that the independent retriever alone is strong on this dataset. Fusion of corrupted TF--IDF with BM25 does not outperform clean BM25. A future study should test whether a checkpoint adds value beyond simply using the stronger retriever and should compare systems under a fixed retrieval or latency budget.
+The pilot demonstrates that having a robust retrieval method is an important factor during multi-stage claim verification. By replacing the top ranked document with a lower ranked one this can impact performance. This makes sense given how our research would work. If we have no evidence to choose from in our candidate documents we will struggle in later stages.
 
-\subsection{Implications for autonomous research}
-The findings motivate avoiding exclusive dependence on a single retrieval ranking for high-impact scientific claims. Independent retrieval signals, provenance records, and explicit evidence review may reduce the risk that one ranking failure silently determines downstream synthesis. These are system-design implications, not measured human-factors outcomes.
+However, it does not demonstrate that an evidence checkpoint will help to mitigate this problem. This is because we used a recovery method that mimicked the clean results.
 
-\section{Limitations and Threats to Validity}
-\textbf{Construct validity:} evidence-document retrieval is only one part of claim verification. The study does not assess whether a document supports or contradicts a claim.
+The corrected independent BM25 + RRF condition gives a more limited and justifiable hypothesis. How well can we recover using a second lexical retrieval method? We saw some recovery compared to the corrupted TF--IDF, however, the recovery condition was still worse than the clean TF--IDF and BM25.
 
-\textbf{Internal validity:} corruption is synthetic and rank-based. Only one corruption seed (37) was run. C2 uses additional retrieval computation and is not budget matched.
+This can only give a conclusion about the retrieval aspect.
 
-\textbf{External validity:} SciFact is a bounded benchmark; results may not generalize to other disciplines or larger corpora.
+The BM25 only condition is an important consideration.
 
-\textbf{Measurement validity:} document-ID matching is used; sentence-level rationale quality is not evaluated.
+If C2 is better than C1 but not as good as C0 we see partial recovery. If C2 is similar to C0 we may see some mitigation in the independent retrieval path. However, if C2 is not better then it shows that this particular retrieval method will not be sufficient under this corruption when using this particular fusion rule.
 
-\textbf{Human factors:} no participants, trust scales, reliance choices, or verification times were measured. No claim about improved trust calibration is supported.
+\subsection{Implications For Autonomous Research Systems}
 
-\textbf{Baseline fidelity:} this is an adapted TF--IDF/BM25 retrieval experiment, not a verified exact reproduction of the complete official SciFact pipeline and evaluator.
+The experiment gives us an insight into the design of our system. We should ensure that high impact research claims are not reliant on a single retrieval path.
 
-\textbf{Reproducibility:} the dataset archive checksum, software versions, seed, corruption manifest, per-claim predictions, and metric tables should accompany the manuscript. The dataset URL points to a \texttt{latest} release and may change; the recorded SHA-256 is therefore important.
+Using independent signals, provenance and reviewing evidence explicitly could reduce the chance of one retrieval error impacting synthesis.
+
+\subsection{Computational Budget}
+
+C2 has an extra BM25 run on the corpus so is not equal in the computational budget to C1.
+
+This should be stated in the study, including how much time it took and how many candidates there were. Future experiments should ensure that systems are compared with an equal retrieval or latency budget. While the BM25 only condition (C3) is a helpful comparison, it does not fully address this issue.
+
+\section{Validity and Limitations}
+
+\textbf{Construct Validity.}
+
+Evidence document retrieval is only part of the claim verification process. It does not tell us whether the document retrieved supports or refutes the claim. It will also not tell us if the researcher used the agent appropriately.
+
+\textbf{Internal Validity.}
+
+Corruption methodology is artificial and only accounts for a limited corruption process. There is also additional retrieval processing in the recovery condition.
+
+\textbf{External Validity.}
+
+SciFact is a limited scientific benchmark so results may not generalise across other domains, large corpora, longer documents or multi-agent research settings.
+
+\textbf{Measurement Validity.}
+
+Matching is only at document level. This means that sentence level rationale quality is not assessed based on annotated evidence document IDs.
+
+\textbf{Human Factors.}
+
+No human factors were measured. These include: human participants, trust scales, decisions about reliance and time taken for human verification. Therefore it is impossible to claim improvements in calibrating trust.
+
+\textbf{Reproducibility.}
+
+The dataset archive hash, software versions, random seed, corruption file, claim level predictions and metrics should be kept.
+
+The URL for downloading the most recent dataset may change, so the hash is important.
+
+SHA-256 hash for the dataset archive:
+
+\texttt{11c621288d41ac144d29b13b0f8503b3820b7d6e8b1f6ff24dff335c196d76be}
 
 \section{Conclusion and Future Work}
-This study examined retrieval error propagation in scientific claim verification using SciFact. Replacing the highest-ranked TF--IDF document with a lower-ranked distractor reduced retrieval performance. An independent BM25+RRF recovery pass partially mitigated this loss, while clean BM25 achieved the strongest performance. These results are limited to evidence-document retrieval on one development split and one corruption seed.
 
-The next steps are to add multiple corruption seeds, build a compute-budget-matched comparator, evaluate sentence-level rationales, and audit/reproduce the official end-to-end SciFact baseline. A separate human-subject study is necessary to measure trust calibration, reliance, verification effort, and expertise effects.
+This manuscript details a controlled experiment exploring how error is propagated during retrieval in scientific claim verification.
+
+The first pilot demonstrates how rank-based corruption can significantly decrease evidence document retrieval performance on the SciFact development set. However a flaw with the recovery short cut was identified in this implementation.
+
+The recovery condition has been adjusted to not have a short cut in the recovery process. This instead uses a BM25 search and a reciprocal rank fusion. A BM25 only comparison is included and paired claim level evaluation.
+
+The BM25+RRF recovery condition shows an improvement in macro-F1 by 0.0665 compared to corrupted TF--IDF (paired claim bootstrap 95\% CI [0.0426, 0.0904]) when looking at the 188 evidence containing claims. However this is still not as good as clean TF--IDF. Clean BM25 is the best performing method.
+
+This is limited to retrieving evidence documents with only one corruption seed.
+
+Future work should include sentence level rationale evaluation, review of the official SciFact end-to-end baseline, additional controls where the computational budget is matched and multiple corruption seeds.
+
+A separate human study would need to be carried out to measure trust, reliance, verification effort and expertise.
 
 \section*{Data and Code Availability}
-The corrected Colab notebook, experiment script, metric tables, per-claim predictions, corruption manifest, figures, and dataset checksum should be archived with the code. Dataset and code redistribution terms should be checked against the original SciFact repository before public redistribution.
+
+\textbf{Benchmark Candidate:}
+
+SciFact.
+
+The fixed single cell Colab notebook, run script, dataset hash, claim level predictions, metrics and figures can be found in the associated research package.
+
+Before redistributing the dataset and code please ensure you know the redistribution conditions from the original SciFact repository.
+
+Ensure this manuscript has been updated with the exact code version and archive hash.
 
 \begin{thebibliography}{99}
-\bibitem{amershi2019} S. Amershi et al. Guidelines for Human-AI Interaction. \textit{CHI}, 2019. doi:10.1145/3290605.3300233.
-\bibitem{bansal2021} G. Bansal et al. Does the Whole Exceed its Parts? The Effect of AI Explanations on Complementary Team Performance. \textit{CHI}, 2021. doi:10.1145/3411764.3445717.
-\bibitem{dietvorst2015} B. J. Dietvorst, J. P. Simmons, and C. Massey. Algorithm Aversion: People Erroneously Avoid Algorithms After Seeing Them Err. \textit{JEP: General}, 144(1), 2015, 114--126. doi:10.1037/xge0000033.
-\bibitem{hoff2015} K. A. Hoff and M. Bashir. Trust in Automation: Integrating Empirical Evidence on Factors That Influence Trust. \textit{Human Factors}, 57(3), 2015, 407--434. doi:10.1177/0018720814547570.
-\bibitem{lee2004} J. D. Lee and K. A. See. Trust in Automation: Designing for Appropriate Reliance. \textit{Human Factors}, 46(1), 2004, 50--80. doi:10.1518/hfes.46.1.50\_30392.
-\bibitem{logg2019} J. M. Logg, J. A. Minson, and D. A. Moore. Algorithm Appreciation: People Prefer Algorithmic to Human Judgment. \textit{Organizational Behavior and Human Decision Processes}, 151, 2019, 90--103. doi:10.1016/j.obhdp.2018.12.005.
-\bibitem{wadden2020} D. Wadden et al. Fact or Fiction: Verifying Scientific Claims. \textit{EMNLP}, 2020. doi:10.18653/v1/2020.emnlp-main.609.
+\bibitem{amershi2019}
+S. Amershi et al. Guidelines for Human-AI Interaction. In \textit{Proceedings of the 2019 CHI Conference on Human Factors in Computing Systems}, 2019, pp. 1--13. doi:10.1145/3290605.3300233.
+
+\bibitem{bansal2021}
+G. Bansal et al. Does the Whole Exceed its Parts? The Effect of AI Explanations on Complementary Team Performance. In \textit{Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems}, 2021. doi:10.1145/3411764.3445717.
+
+\bibitem{dietvorst2015}
+B. J. Dietvorst, J. P. Simmons, and C. Massey. Algorithm Aversion: People Erroneously Avoid Algorithms After Seeing Them Err. \textit{Journal of Experimental Psychology: General}, 144(1), 2015, pp. 114--126. doi:10.1037/xge0000033.
+
+\bibitem{hoff2015}
+K. A. Hoff and M. Bashir. Trust in Automation: Integrating Empirical Evidence on Factors That Influence Trust. \textit{Human Factors}, 57(3), 2015, pp. 407--434. doi:10.1177/0018720814547570.
+
+\bibitem{lee2004}
+J. D. Lee and K. A. See. Trust in Automation: Designing for Appropriate Reliance. \textit{Human Factors}, 46(1), 2004, pp. 50--80. doi:10.1518/hfes.46.1.50\_30392.
+
+\bibitem{logg2019}
+J. M. Logg, J. A. Minson, and D. A. Moore. Algorithm Appreciation: People Prefer Algorithmic to Human Judgment. \textit{Organizational Behavior and Human Decision Processes}, 151, 2019, pp. 90--103. doi:10.1016/j.obhdp.2018.12.005.
+
+\bibitem{shneiderman2022}
+B. Shneiderman. Human-Centered AI: Ensuring Human Control While Increasing Automation. In \textit{HUMAN@HT 2022}, 2022. doi:10.1145/3538882.3542790.
+
+\bibitem{wadden2020}
+D. Wadden et al. Fact or Fiction: Verifying Scientific Claims. In \textit{Proceedings of EMNLP}, 2020. doi:10.18653/v1/2020.emnlp-main.609.
+
 \end{thebibliography}
 \end{document}
