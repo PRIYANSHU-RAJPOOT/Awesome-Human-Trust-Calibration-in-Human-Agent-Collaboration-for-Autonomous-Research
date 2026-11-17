@@ -6,7 +6,7 @@
 - [ ] Confirm scope and benchmark with instructor/TA if required.
 
 ## G2: Baseline verification
-- [ ] Run Google Colab environment notebook and save actual output.
+- [x] Run the single-cell corrected Colab experiment; archive actual result tables and metadata.
 - [ ] Clone SciFact; record commit, data manifest, checksums and license conditions.
 - [ ] Audit official code, preprocessing, retrieval, split and evaluator.
 - [ ] Run clean baseline and save actual console logs and per-claim predictions.
@@ -17,13 +17,13 @@
 - [ ] Verify no use of gold evidence/labels in corruption selection.
 - [ ] Run C0/C1/C2 with paired claim IDs and planned seeds.
 - [ ] Add budget-matched control where needed.
-- [ ] Export real metrics, uncertainty estimates, error tables and publication figures.
+- [x] Export retrieval metrics, paired bootstrap interval, per-claim tables and figures for seed 37.\n- [ ] Repeat across the planned corruption seeds and summarize perturbation variability.\n- [ ] Add a compute-budget-matched recovery comparator.
 - [ ] Perform failure analysis and preserve raw outputs/configurations.
 
 ## G4: Paper and reproducibility
-- [ ] Replace protocol-only manuscript sections with actual Results, Discussion and limitations.
+- [x] Expand manuscript with corrected retrieval results, tables, figures, discussion and limitations (pending final multi-seed/baseline validation).
 - [ ] Recheck citations and bibliography metadata.
-- [ ] Include reproducible commands, environment, checksums, data-access/license notes and deviations.
+- [ ] Include final reproducible commands, environment, checksums, data-access/license notes and deviations.
 - [ ] Record AI assistance and meaningful human decisions.
 - [ ] Run a five-minute technical demonstration using actual outputs.
 - [ ] Confirm submission naming, visibility and required links with the handbook/instructor.
